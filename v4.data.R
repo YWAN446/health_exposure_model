@@ -18,6 +18,9 @@ dat3<-pd_dat %>%
 #remove duplicated samples
 dat3<-dat3[which(!duplicated(dat3[,1:6])),]
 
+#dat1 switch neighborhood coding
+dat1$neighbor=3-dat1$neighbor
+
 dat_all0<-rbind(dat1,dat2,dat3)
 dat_all<-dat_all0[which(!is.na(dat_all0$ec_conc) & dat_all0$ev_long>=78 & dat_all0$ev_long<=79.16 & dat_all0$ev_lat>=12.8),]
 dat_all$ec_lnconc<-log10(dat_all$ec_conc)
@@ -88,15 +91,20 @@ cmc_clu<-merge(cmc_clu0,study_date)
 
 #link each child with the closest environmental samples
 # Calculates the geodesic distance between two points specified by radian latitude/longitude using the
-# Haversine formula (hf)
-gcd.hf <- function(long1, lat1, long2, lat2) {
-  R <- 6371 # Earth mean radius [km]
-  delta.long <- (long2 - long1)
-  delta.lat <- (lat2 - lat1)
-  a <- sin(delta.lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta.long/2)^2
-  c <- 2 * asin(min(1,sqrt(a)))
-  d = R * c
-  return(d) # Distance in km
+gcd.hf <- function (long1, lat1, long2, lat2) 
+{
+  rad <- pi/180
+  a1 <- lat1 * rad
+  a2 <- long1 * rad
+  b1 <- lat2 * rad
+  b2 <- long2 * rad
+  dlon <- b2 - a2
+  dlat <- b1 - a1
+  a <- (sin(dlat/2))^2 + cos(a1) * cos(b1) * (sin(dlon/2))^2
+  c <- 2 * atan2(sqrt(a), sqrt(1 - a))
+  R <- 6378.145
+  d <- R * c
+  return(d) #distance in km
 }
 
 samtype<-c("Bathing Water", "Child Hand Rinse", "Drain", "Particulate", "Piped Water", "Produce", "Swabs", "Toy Feeding Spoon Rinse")
